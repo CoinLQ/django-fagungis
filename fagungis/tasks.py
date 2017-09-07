@@ -37,10 +37,10 @@ def setup():
     _install_dependencies()
     _create_django_user()
     _setup_directories()
-    _hg_clone()
-    _install_virtualenv()
-    _create_virtualenv()
-    _install_gunicorn()
+    #_git_clone()
+    #_install_virtualenv()
+    #_create_virtualenv()
+    #_install_gunicorn()
     _install_requirements()
     _upload_nginx_conf()
     _upload_rungunicorn_script()
@@ -66,11 +66,8 @@ def deploy():
     puts(green_bg('Start deploy...'))
     start_time = datetime.now()
 
-    hg_pull()
+    git_pull()
     _install_requirements()
-    _upload_nginx_conf()
-    _upload_rungunicorn_script()
-    _upload_supervisord_conf()
     _prepare_django_project()
     _prepare_media_path()
     _supervisor_restart()
@@ -82,9 +79,9 @@ def deploy():
 
 
 @task
-def hg_pull():
+def git_pull():
     with cd(env.code_root):
-        sudo('hg pull -u')
+        sudo('git pull -u')
 
 
 @task
@@ -278,23 +275,27 @@ def _verify_sudo():
 
 
 def _install_nginx():
-    # add nginx stable ppa
-    sudo("add-apt-repository ppa:nginx/stable")
     sudo("apt-get update")
-    sudo("apt-get -y install nginx")
-    sudo("/etc/init.d/nginx start")
+    # add nginx stable ppa
+    # sudo("add-apt-repository ppa:nginx/stable")
+    # sudo("apt-get update")
+    # sudo("apt-get -y install nginx")
+    # sudo("/etc/init.d/nginx start")
 
 
 def _install_dependencies():
     ''' Ensure those Debian/Ubuntu packages are installed '''
+    # sudo("add-apt-repository ppa:fkrull/deadsnakes")
+    # sudo("apt-get update")
     packages = [
         "python-software-properties",
-        "python-dev",
+        "python3.5",
+        "python3.5-dev",
+        "libncurses5-dev",
         "build-essential",
         "python-pip",
         "supervisor",
     ]
-    sudo("apt-get update")
     sudo("apt-get -y install %s" % " ".join(packages))
     if "additional_packages" in env and env.additional_packages:
         sudo("apt-get -y install %s" % " ".join(env.additional_packages))
@@ -316,7 +317,6 @@ def _install_gunicorn():
 
 def _install_virtualenv():
     sudo('pip install virtualenv')
-
 
 def _create_virtualenv():
     sudo('virtualenv --%s %s' % (' --'.join(env.virtenv_options), env.virtenv))
@@ -357,8 +357,8 @@ def virtenvsudo(command):
     sudo(activate + ' && ' + command)
 
 
-def _hg_clone():
-    sudo('hg clone %s %s' % (env.repository, env.code_root))
+def _git_clone():
+    sudo('git clone %s %s' % (env.repository, env.code_root))
 
 
 def _test_nginx_conf():
@@ -384,7 +384,7 @@ def _upload_nginx_conf():
     upload_template(template, env.nginx_conf_file,
                     context=context, backup=False, use_sudo=True)
 
-    sudo('ln -sf %s /etc/nginx/sites-enabled/%s' % (env.nginx_conf_file, basename(env.nginx_conf_file)))
+    sudo('ln -sf %s /opt/nginx/conf/sites-enabled/%s' % (env.nginx_conf_file, basename(env.nginx_conf_file)))
     _test_nginx_conf()
     sudo('nginx -s reload')
 
@@ -410,7 +410,6 @@ def _upload_supervisord_conf():
 
 def _prepare_django_project():
     with cd(env.django_project_root):
-        virtenvrun('./manage.py syncdb --noinput --verbosity=1')
         if env.south_used:
             virtenvrun('./manage.py migrate --noinput --verbosity=1')
         virtenvsudo('./manage.py collectstatic --noinput')
@@ -438,6 +437,6 @@ def _supervisor_restart():
     with settings(hide('running', 'stdout', 'stderr', 'warnings'), warn_only=True):
         res = sudo('%(supervisorctl)s restart %(supervisor_program_name)s' % env)
     if 'ERROR' in res:
-        print red_bg("%s NOT STARTED!" % env.supervisor_program_name)
+        print ("%s NOT STARTED!" % env.supervisor_program_name)
     else:
-        print green_bg("%s correctly started!" % env.supervisor_program_name)
+        print ("%s correctly started!" % env.supervisor_program_name)

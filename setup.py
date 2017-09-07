@@ -27,8 +27,8 @@ CLASSIFIERS = [
 setup(
     name="django-fagungis",
     version=__import__('fagungis').get_version(),
-    url='https://bitbucket.org/DNX/django-fagungis/wiki/Home',
-    download_url='http://bitbucket.org/DNX/django-fagungis/downloads',
+    url='https://github.com/CoinLQ/django-fagungis/wiki/Home',
+    download_url='https://github.com/CoinLQ/django-fagungis/releases',
     license='BSD License',
     description="DJANGO + FAbric + GUnicorn + NGInx + Supervisor deployment",
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
@@ -41,6 +41,6 @@ setup(
     zip_safe=False,
     classifiers=CLASSIFIERS,
     install_requires=[
-        'Fabric>=1.3',
+        'Fabric3>=1.11',
     ],
 )
