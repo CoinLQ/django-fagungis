@@ -37,10 +37,10 @@ def setup():
     _install_dependencies()
     _create_django_user()
     _setup_directories()
-    #_git_clone()
-    #_install_virtualenv()
-    #_create_virtualenv()
-    #_install_gunicorn()
+    _git_clone()
+    _install_virtualenv()
+    _create_virtualenv()
+    _install_gunicorn()
     _install_requirements()
     _upload_nginx_conf()
     _upload_rungunicorn_script()
@@ -277,24 +277,26 @@ def _verify_sudo():
 def _install_nginx():
     sudo("apt-get update")
     # add nginx stable ppa
-    # sudo("add-apt-repository ppa:nginx/stable")
-    # sudo("apt-get update")
-    # sudo("apt-get -y install nginx")
+    sudo("add-apt-repository ppa:nginx/stable")
+    sudo("apt-get update")
+    sudo("apt-get -y install nginx")
     # sudo("/etc/init.d/nginx start")
 
 
 def _install_dependencies():
     ''' Ensure those Debian/Ubuntu packages are installed '''
-    # sudo("add-apt-repository ppa:fkrull/deadsnakes")
-    # sudo("apt-get update")
+    sudo("add-apt-repository ppa:fkrull/deadsnakes")
+    sudo("apt-get update")
     packages = [
         "python-software-properties",
-        "python3.5",
-        "python3.5-dev",
+        "python3.6",
+        "python3.6-dev",
         "libncurses5-dev",
         "build-essential",
         "python-pip",
         "supervisor",
+        "posgresql",
+        "redis"
     ]
     sudo("apt-get -y install %s" % " ".join(packages))
     if "additional_packages" in env and env.additional_packages:
@@ -316,10 +318,10 @@ def _install_gunicorn():
 
 
 def _install_virtualenv():
-    sudo('pip install virtualenv')
+    sudo('pip install virtualenv;pip install virtualenvwrapper')
 
 def _create_virtualenv():
-    sudo('virtualenv --%s %s' % (' --'.join(env.virtenv_options), env.virtenv))
+    sudo('mkvirtualenv --%s %s' % (' --'.join(env.virtenv_options), env.virtenv))
 
 
 def _setup_directories():
